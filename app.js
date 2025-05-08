@@ -8,7 +8,7 @@ const rl = createInterface({
 });
 
 let peliculas = [
-  { titulo: "El viaje de Chihiro", vista: false },
+  { titulo: "El viaje de Chihiro", vista: true },
   { titulo: "La casa de papel", vista: true },
   { titulo: "El secreto de la muerte", vista: true },
   { titulo: "Avengers: Endgame", vista: false },
@@ -40,14 +40,22 @@ const mostrarListaPeliculas = () => {
   /*   const peliculasVistas = peliculas.filter((pelicula) => pelicula.vista)
   const peliculasNoVistas = peliculas.filter((pelicula) => !pelicula.vista) */
   const { true: peliculasVistas, false: peliculasNoVistas } = Object.groupBy(peliculas, peli => peli.vista)
-  console.log('✔️', peliculasVistas.length, ' Peliculas Vistas');
-  peliculasVistas.forEach((pelicula, index) => {
-    console.log(chalk.greenBright(index + 1, pelicula.titulo))
-  })
-  console.log(`❌ ${peliculasNoVistas.length} peliculas no vistas`)
-  peliculasNoVistas.forEach((pelicula, index) => {
-    console.log(chalk.redBright(index + 1, pelicula.titulo))
-  })
+  if (!peliculasVistas ) {
+    console.log('No hay peliculas vistas')
+  } else {
+    console.log('✔️', peliculasVistas?.length, ' Peliculas Vistas');
+    peliculasVistas?.forEach((pelicula, index) => {
+      console.log(chalk.greenBright(index + 1, pelicula.titulo))
+    })
+  }
+  if (!peliculasNoVistas) {
+    console.log('No hay peliculas no vistas')
+  } else {
+    console.log(`❌ ${peliculasNoVistas?.length} peliculas no vistas`)
+    peliculasNoVistas?.forEach((pelicula, index) => {
+      console.log(chalk.redBright(index + 1, pelicula.titulo))
+    })
+  }
   manejarOpcion()
 }
 
@@ -82,9 +90,13 @@ const marcarComoVista = () => {
     if (peliculaIndex < 1 || peliculaIndex > peliculasNoVistas.length) {
       console.log(chalk.redBright('La pelicula en ese indice no existe'))
       return
-    }
+    }    
     // Si la encuentra, marcamos la pelicula como vista
-    peliculas[peliculaIndex-1].vista = true
+    peliculas.forEach((pelicula) => {
+      if (pelicula.titulo === peliculasNoVistas[peliculaIndex - 1].titulo) {
+        pelicula.vista = true
+      }
+    })
     manejarOpcion()
   })
 }
