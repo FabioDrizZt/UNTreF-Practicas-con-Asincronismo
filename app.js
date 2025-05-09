@@ -1,24 +1,21 @@
 // Proyecto de seguimiento de peliculas
 import { createInterface } from "readline";
 import chalk from "chalk";
-
+import path from 'path';
+import { readFile, writeFile } from 'fs/promises'; // Usamos fs/promises para poder leer y escribir archivos
+// en lugar de __dirname usamos process.cwd() - Current Working Directory
+// para poder usar archivos en el mismo directorio
+const PATH_PELICULAS = path.join(process.cwd(), 'data', 'peliculas.json')
+// Creamos la interfaz de usuario
+// para poder leer las respuestas del usuario
+// desde la consola
 const rl = createInterface({
   input: process.stdin,
   output: process.stdout,
 });
-
-let peliculas = [
-  { titulo: "El viaje de Chihiro", vista: true },
-  { titulo: "La casa de papel", vista: true },
-  { titulo: "El secreto de la muerte", vista: true },
-  { titulo: "Avengers: Endgame", vista: false },
-  { titulo: "Avengers: Infinity War", vista: false },
-  { titulo: "Avengers: Age of Ultron", vista: true },
-  { titulo: "The Dark Knight", vista: true },
-  { titulo: "Titanic", vista: true },
-  { titulo: "Batman v Superman: Dawn of Justice", vista: true },
-]
-
+// Lista de peliculas en array de objetos
+let peliculas = []
+// Mostrar el menu de la aplicación
 const mostrarMenu = () => {
   console.log(chalk.greenBright('---- Menu ----'));
   console.log(chalk.underline.bold.greenBright('Bienvenido a la aplicación de seguimiento de peliculas'));
@@ -29,27 +26,26 @@ const mostrarMenu = () => {
   console.log(chalk.blueBright('0. Salir'));
   console.log(chalk.greenBright('--------------'));
 }
-
 // Listar Peliculas Vistas y No Vistas
 const mostrarListaPeliculas = () => {
   console.log(' --- Listado de peliculas --- ')
   if (peliculas.length == 0) {
     console.log('No hay peliculas')
-    return
+    manejarOpcion()
   }
   /*   const peliculasVistas = peliculas.filter((pelicula) => pelicula.vista)
   const peliculasNoVistas = peliculas.filter((pelicula) => !pelicula.vista) */
   const { true: peliculasVistas, false: peliculasNoVistas } = Object.groupBy(peliculas, peli => peli.vista)
-  if (!peliculasVistas ) {
-    console.log('No hay peliculas vistas')
+  if (!peliculasVistas) {
+    console.log(chalk.redBright('No hay peliculas vistas'))
   } else {
-    console.log('✔️', peliculasVistas?.length, ' Peliculas Vistas');
+    console.log('✔️ ', peliculasVistas?.length, ' Peliculas Vistas');
     peliculasVistas?.forEach((pelicula, index) => {
       console.log(chalk.greenBright(index + 1, pelicula.titulo))
     })
   }
   if (!peliculasNoVistas) {
-    console.log('No hay peliculas no vistas')
+    console.log(chalk.redBright('No hay peliculas no vistas'))
   } else {
     console.log(`❌ ${peliculasNoVistas?.length} peliculas no vistas`)
     peliculasNoVistas?.forEach((pelicula, index) => {
@@ -58,26 +54,25 @@ const mostrarListaPeliculas = () => {
   }
   manejarOpcion()
 }
-
 // Agrega una pelicula a la lista como no vista
 const agregarPelicula = () => {
   rl.question('Ingrese el nombre de la pelicula: ', (pelicula) => {
     // validamos que no agregue cadena vacia
     if (pelicula.trim() === '') {
       console.log('No se puede agregar una pelicula vacia')
-      return
+      manejarOpcion()
     }
     // validamos que no agregue una pelicula repetida
     if (peliculas.some(peli => peli.titulo === pelicula)) {
       console.log('Ya existe una pelicula con ese nombre')
-      return
+      manejarOpcion()
     }
     // agregamos la pelicula
     peliculas.push({ titulo: pelicula.trim(), vista: false })
+    guardarPeliculas()
     manejarOpcion()
   })
 }
-
 // Marcar una pelicula como vista
 const marcarComoVista = () => {
   const peliculasNoVistas = peliculas.filter(peli => !peli.vista)
@@ -90,17 +85,18 @@ const marcarComoVista = () => {
     if (peliculaIndex < 1 || peliculaIndex > peliculasNoVistas.length) {
       console.log(chalk.redBright('La pelicula en ese indice no existe'))
       return
-    }    
+    }
     // Si la encuentra, marcamos la pelicula como vista
     peliculas.forEach((pelicula) => {
       if (pelicula.titulo === peliculasNoVistas[peliculaIndex - 1].titulo) {
         pelicula.vista = true
       }
     })
+    guardarPeliculas()
     manejarOpcion()
   })
 }
-
+// Manejar las opciones del menu
 const manejarOpcion = () => {
   mostrarMenu();
   // rl.question permite que el usuario escriba una respuesta
@@ -127,5 +123,30 @@ const manejarOpcion = () => {
     }
   });
 }
+// Cargar peliculas desde el archivo JSON al array de peliculas
+const cargarPeliculas = async () => {
+  try {
+    const data = await readFile(PATH_PELICULAS, 'utf8')
+    if (data) {
+      peliculas = JSON.parse(data)
+      console.log(chalk.green('Peliculas cargadas correctamente'))
+    }
+  } catch (error) {
+    console.log(chalk.red('Error al cargar peliculas'))
+    console.log(error)
+  }
+}
+// Guardar peliculas en el archivo JSON del array de peliculas
+const guardarPeliculas = async () => {
+  const pelisAGuardar = JSON.stringify(peliculas, null, 2)
+  try {
+    await writeFile(PATH_PELICULAS, pelisAGuardar, 'utf8')
+    console.log(chalk.green('Peliculas guardadas correctamente'))
+  } catch (error) {
+    console.log(chalk.red('Error al guardar peliculas'))
+    console.log(error)
+  }
+}
 
+cargarPeliculas()
 manejarOpcion()

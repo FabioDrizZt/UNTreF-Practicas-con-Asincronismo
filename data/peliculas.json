@@ -1,0 +1,26 @@
+[
+  {
+    "titulo": "El viaje de Chihiro",
+    "vista": false
+  },
+  {
+    "titulo": "La casa de papel",
+    "vista": true
+  },
+  {
+    "titulo": "Avengers: Infinity War",
+    "vista": true
+  },
+  {
+    "titulo": "Avengers: Age of Ultron",
+    "vista": true
+  },
+  {
+    "titulo": "Deadpool",
+    "vista": true
+  },
+  {
+    "titulo": "Kill Bill",
+    "vista": false
+  }
+]
